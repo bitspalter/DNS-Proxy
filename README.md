@@ -1,4 +1,4 @@
-# DNS-Proxy
+# DNS-Proxy (alpha)
 
 1. compile:
 g++ *.cpp -std=c++11 -o DNS-Proxy `pkg-config gtkmm-3.0 --cflags --libs`
