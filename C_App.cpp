@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 C_App::C_App(int argc, char *argv[]){
   
-   this->set_icon_from_file("1.png");
+   //this->set_icon_from_file("1.png");
    this->set_title("DNS - Proxy");
    this->resize(750, 500);
    this->maximize();
