@@ -121,7 +121,7 @@ C_TreeView::~C_TreeView(){
 //////////////////////////////////////////////////////////////////////////////////
 // [ setFilter ]
 //////////////////////////////////////////////////////////////////////////////////
-int C_TreeView::setFilter(C_Blacklist* pBlist, C_Whitelist* pWlist){
+int C_TreeView::setFilter(C_Filterlist* pBlist, C_Filterlist* pWlist){
    
    if(!pBlist || !pWlist) return(C_TREEVIEW_ERROR);
   
@@ -162,7 +162,7 @@ void C_TreeView::on_popup_WhiteAdd(){
       Gtk::TreeModel::iterator iter = refSelection->get_selected();
       if(iter){
          Glib::ustring request = (*iter)[m_Columns.m_col_request];
-	 pWhitelist->add(request.c_str());
+         pWhitelist->add(request.c_str());
       }
    }
 }
@@ -177,9 +177,11 @@ void C_TreeView::on_popup_WhiteDel(){
       Gtk::TreeModel::iterator iter = refSelection->get_selected();
       if(iter){
          Glib::ustring request = (*iter)[m_Columns.m_col_request];
-	 pWhitelist->del(request.c_str());
+         pWhitelist->del(request.c_str());
       }
    }
+   
+   on_popup_WhiteEdi();
 }
 //////////////////////////////////////////////////////////////////////////////////
 // [ on_popup_WhiteEdi ]
@@ -188,9 +190,9 @@ void C_TreeView::on_popup_WhiteEdi(){
 
    m_refTreeModel->clear();
    
-   for(int nWhite = 0; nWhite < pWhitelist->CDA_WhiteList.getnItems(); nWhite++){
+   for(int nWhite = 0; nWhite < pWhitelist->CDA_FilterList.getnItems(); nWhite++){
 
-      C_Array* pData = pWhitelist->CDA_WhiteList.getpItempData(nWhite);
+      C_Array<char>* pData = pWhitelist->CDA_FilterList.getpItempData(nWhite);
       
       Gtk::TreeModel::iterator iter = m_refTreeModel->append();
       Gtk::TreeModel::Row row       = *iter;
@@ -210,7 +212,7 @@ void C_TreeView::on_popup_BlackAdd(){
       Gtk::TreeModel::iterator iter = refSelection->get_selected();
       if(iter){
          Glib::ustring request = (*iter)[m_Columns.m_col_request];
-	 pBlacklist->add(request.c_str());
+         pBlacklist->add(request.c_str());
       }
    }
 }
@@ -225,9 +227,11 @@ void C_TreeView::on_popup_BlackDel(){
       Gtk::TreeModel::iterator iter = refSelection->get_selected();
       if(iter){
          Glib::ustring request = (*iter)[m_Columns.m_col_request];
-	 pBlacklist->del(request.c_str());
+         pBlacklist->del(request.c_str());
       }
    }
+   
+   on_popup_BlackEdi();
 }
 //////////////////////////////////////////////////////////////////////////////////
 // [ on_popup_BlackEdi ]
@@ -236,9 +240,9 @@ void C_TreeView::on_popup_BlackEdi(){
 
    m_refTreeModel->clear();
    
-   for(int nBlack = 0; nBlack < pBlacklist->CDA_BlackList.getnItems(); nBlack++){
+   for(int nBlack = 0; nBlack < pBlacklist->CDA_FilterList.getnItems(); nBlack++){
 
-      C_Array* pData = pBlacklist->CDA_BlackList.getpItempData(nBlack);
+      C_Array<char>* pData = pBlacklist->CDA_FilterList.getpItempData(nBlack);
       
       Gtk::TreeModel::iterator iter = m_refTreeModel->append();
       Gtk::TreeModel::Row row       = *iter;

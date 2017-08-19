@@ -33,7 +33,7 @@ void C_Result::on_dns_data(){
    
    //////////////////////////////////
 
-   cout << pListStore->children().size() << "  ";
+   //cout << pListStore->children().size() << "  ";
    
    /////////////////
    
@@ -41,9 +41,9 @@ void C_Result::on_dns_data(){
 
    time_t t = time(NULL);
    struct tm tm = *localtime(&t);
-   sprintf(pItem1, "%d.%d.%d %d:%d:%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
+   sprintf(pItem1, "%02d.%02d.%d %02d:%02d:%02d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-   cout << pItem1 << "  ";
+   //cout << pItem1 << "  ";
    
    /////////////////
    
@@ -53,7 +53,7 @@ void C_Result::on_dns_data(){
    in.s_addr = pDns_Result->pIP;    
    sprintf(pItem2, "%s", inet_ntoa(in));
 
-   cout << pItem2 << "  ";
+   //cout << pItem2 << "  ";
    
    /////////////////
    
@@ -61,7 +61,7 @@ void C_Result::on_dns_data(){
 
    sprintf(pItem3, "%s", psDomain);
 
-   cout << pItem3 << "  ";
+   //cout << pItem3 << "  ";
    
    /////////////////
    
@@ -77,7 +77,7 @@ void C_Result::on_dns_data(){
       }
    }
 
-   cout << pItem4 << endl;
+   //cout << pItem4 << endl;
    
    /////////////////
    

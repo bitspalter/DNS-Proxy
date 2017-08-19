@@ -15,22 +15,27 @@ C_App::C_App(int argc, char *argv[]){
    this->maximize();
 
    /////////////////////////////////////////////
-
-   m_TreeView.setFilter(&CBlacklist, &CWhitelist);
+   
+   CBlacklist.init(BLPATH);
+   CWhitelist.init(WLPATH);
+   
+   /////////////////////////////////////////////
+   
+   CTreeView.setFilter(&CBlacklist, &CWhitelist);
    
    //Add the TreeView, inside a ScrolledWindow, with the button underneath:
-   m_ScrolledWindow.add(m_TreeView);
+   m_ScrolledWindow.add(CTreeView);
    
    //Only show the scrollbars when they are necessary:
    m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
    /////////////////////////////////////////////
    
-   CResult.init(&m_TreeView, m_TreeView.m_refTreeModel, &m_TreeView.m_Columns, (S_Result*)&CNet.dns_result);
+   CResult.init(&CTreeView, CTreeView.m_refTreeModel, &CTreeView.m_Columns, (S_Result*)&CNet.dns_result);
   
    /////////////////////////////////////////////
    
-   if(CNet.start(&CWhitelist.CDA_WhiteList, &CBlacklist.CDA_BlackList) != C_NET_READY){
+   if(CNet.start(&CWhitelist.CDA_FilterList, &CBlacklist.CDA_FilterList) != C_NET_READY){
       cout << "ERROR: CNet.start" << endl;
       return;
    }
@@ -41,20 +46,13 @@ C_App::C_App(int argc, char *argv[]){
    
    CNet.sig_dns_data.connect(sigc::mem_fun(CResult, &C_Result::on_dns_data));
 
+   /////////////////////////////////////////////////////////////
    //Fill the combo:
-   C_DArray*        pDA_Interface = 0;
-   S_Net_Interface* pSInterface   = 0;
+   const vector<S_Net_Interface>* pDA_Interface = CNet.CNInterface.get_pDA_Interface();
+
+   for(auto iface : *pDA_Interface) m_IFCombo.append(iface.ps_Name);
    
-   if((pDA_Interface = CNet.CNInterface.get_pDA_Interface())){
-      for(int n = 0; n < pDA_Interface->getnItems(); n++){
-         S_C_DArray* pCA_F = pDA_Interface->getpItem(n);
-         if((pSInterface = (S_Net_Interface*)pCA_F->pData->getpBuffer()))
-            m_IFCombo.append(pSInterface->_ps_Name);
-      }
-   }else{
-      cout << "ERROR: CNInterface.get_pDA_Interface" << endl;
-      return;
-   }
+   //////////////////////////////////////////////////////////////
    
    m_IFCombo.set_active(CNet.CNInterface.get_First_Active());
    m_IFCombo.set_size_request(100, 30); 
@@ -88,25 +86,25 @@ C_App::C_App(int argc, char *argv[]){
    
    ///////////////////////////////////////////////////////
 
-   EditIpD.set_size(3, 30);
+   EditIpD.setSize(3, 30);
    EditIpD.setIP("0.0.0.0");
 
    ///////////////////////////////////////////////////////
    
-   m_layout.put(m_IFCombo,        0,  0);
-   m_layout.put(sbutton.start,  100,  0);
-   m_layout.put(sbutton.stop,   200,  0);
+   m_layout.put(m_IFCombo,           0, 0);
+   m_layout.put(sbutton.start,     100, 0);
+   m_layout.put(sbutton.stop,      200, 0);
    
-   m_layout.put(EditIpD.aEdit[0], 300, 0);
-   m_layout.put(EditIpD.aEdit[1], 342, 0);
-   m_layout.put(EditIpD.aEdit[2], 384, 0);
-   m_layout.put(EditIpD.aEdit[3], 426, 0);
+   m_layout.put(EditIpD.aEdit[0],  300, 0);
+   m_layout.put(EditIpD.aEdit[1],  342, 0);
+   m_layout.put(EditIpD.aEdit[2],  384, 0);
+   m_layout.put(EditIpD.aEdit[3],  426, 0);
    
    m_layout.put(sbutton.whitelist, 468, 0);
    m_layout.put(sbutton.blacklist, 568, 0);
    m_layout.put(sbutton.nolist,    668, 0);
    
-   m_layout.put(m_ScrolledWindow, 0, 30);
+   m_layout.put(m_ScrolledWindow,   0, 30);
    
    add(m_layout);
    
@@ -119,21 +117,52 @@ C_App::C_App(int argc, char *argv[]){
    show_all_children();
    
    ////////////////////////
+   char tmp;
+   bool bAutostart = false;
    
-   if(argc > 1){
-      if(argc > 2){
-	 if(argc > 3){
-	    EditIpD.setIP(argv[3]);
-	 }
-         string arg3 = argv[2];
-         if(arg3 == "black") sbutton.blacklist.set_active();
-         else
-         if(arg3 == "white") sbutton.whitelist.set_active();
-         else                sbutton.nolist.set_active();
+   while((tmp = getopt(argc, argv, "hd:l:i:b:w:a")) != -1){
+      switch(tmp){
+         case 'h': help(); break;
+         case 'd': EditIpD.setIP(optarg); break;
+         case 'a': bAutostart = true; break;
+         case 'b': CBlacklist.init(optarg); break;
+         case 'w': CWhitelist.init(optarg); break;
+         case 'l':{
+            if(strcmp(optarg, "black") == 0) sbutton.blacklist.set_active(); 
+            else
+            if(strcmp(optarg, "white") == 0) sbutton.whitelist.set_active();
+            break;
+         }
+         case 'i':{
+            int i = 0;
+            for(auto iface : *pDA_Interface){
+               if(strcmp(optarg, iface.ps_Name) == 0){
+                   m_IFCombo.set_active(i);
+                   break;
+               }
+               i++;
+            }
+            break;
+         }
       }
-      string arg2 = argv[1];
-      if(arg2 == "auto") on_button_start();
    }
+
+   if(bAutostart) on_button_start();
+}
+//////////////////////////////////////////////////////////////////////////////////
+// [ help ]
+//////////////////////////////////////////////////////////////////////////////////
+void C_App::help(){
+    cout << "Welcome" << endl;
+    cout << "Options:" << endl;
+    cout << "-h help" << endl;
+    cout << "-d dns server" << endl;
+    cout << "-a autostart" << endl;
+    cout << "-l list (white|black)" << endl;
+    cout << "-i interface" << endl;
+    cout << "-b blacklist (path)" << endl;
+    cout << "-w whitelist (path)" << endl;
+    cout << "Example: ./dns-proxy -i eth0 -d 192.168.0.1 -l black -b /home/foo/blacklist.txt -a" << endl;
 }
 //////////////////////////////////////////////////////////////////////////////////
 // [ Destructor ]
@@ -145,59 +174,45 @@ C_App::~C_App(){
 // [ on_button_start ]
 //////////////////////////////////////////////////////////////////////////////////
 void C_App::on_button_start(){
-   C_DArray*        pDA_Interface = 0;
-   S_Net_Interface* pSInterface   = 0;
-   
-   //////////////////////////////
+    
+   const S_Net_Interface* pSInterface = 0;
 
-   if((pDA_Interface = CNet.CNInterface.get_pDA_Interface())){
-     
-      int nInterface = m_IFCombo.get_active_row_number();
-     
-      S_C_DArray* pCA_F = pDA_Interface->getpItem(nInterface);
-     
-      if((pSInterface = (S_Net_Interface*)pCA_F->pData->getpBuffer())){
+   pSInterface = CNet.CNInterface.get_pInterface(m_IFCombo.get_active_row_number());
 
-	 string strIP_DNS;
-	 EditIpD.getIP(&strIP_DNS);
+   string strIP_DNS;
+   EditIpD.getIP(&strIP_DNS);
 
-         if(CNet.CNUdpClient.create() != C_NET_UDP_SOCKET_READY){
-            cout << "Error create Client Socket" << endl;
-            return;
-         }
-	 
-         if(CNet.CNUdpClient.connect((char*)strIP_DNS.c_str(), 53) != C_NET_UDP_SOCKET_READY){
-            cout << "Error connect Client Socket" << endl;
-            return;
-	 }
-
-	 if(CNet.CNUdpClient.start(C_NET_ID_CLIENT, &CNet.CAClient) != C_NET_UDP_SOCKET_READY){
-            cout << "Error start Client Socket" << endl;
-            return;
-	 }  
- 
-         ///////////////////////////////////////////
-
-         if(CNet.CNUdpServer.create() != C_NET_UDP_SOCKET_READY){
-            cout << "Error create Server Socket" << endl;
-            return;
-         }
-   
-         if(CNet.CNUdpServer.listen(pSInterface->_ps_IP, 53) != C_NET_UDP_SOCKET_READY){
-            cout << "Error listen Server Socket" << endl;
-            return;
-	 }
-
-	 if(CNet.CNUdpServer.start(C_NET_ID_SERVER, &CNet.CAServer) != C_NET_UDP_SOCKET_READY){
-            cout << "Error start Server Socket" << endl;
-            return;
-	 } 
-	 
-      }else{
-         cout << "ERROR: pSInterface" << endl;
-         return;
-      }
+   if(CNet.CNUdpClient.create() != C_NET_UDP_SOCKET_READY){
+      cout << "Error create Client Socket" << endl;
+      return;
    }
+	 
+   if(CNet.CNUdpClient.connect((char*)strIP_DNS.c_str(), 53) != C_NET_UDP_SOCKET_READY){
+      cout << "Error connect Client Socket" << endl;
+      return;
+   }
+
+   if(CNet.CNUdpClient.start(C_NET_ID_CLIENT, &CNet.CAClient[0], C_NET_BUFFER) != C_NET_UDP_SOCKET_READY){
+      cout << "Error start Client Socket" << endl;
+      return;
+   }  
+ 
+   ///////////////////////////////////////////
+
+   if(CNet.CNUdpServer.create() != C_NET_UDP_SOCKET_READY){
+      cout << "Error create Server Socket" << endl;
+      return;
+   }
+   
+   if(CNet.CNUdpServer.listen(pSInterface->ps_IP, 53) != C_NET_UDP_SOCKET_READY){
+      cout << "Error listen Server Socket" << endl;
+      return;
+   }
+
+   if(CNet.CNUdpServer.start(C_NET_ID_SERVER, &CNet.CAServer[0], C_NET_BUFFER) != C_NET_UDP_SOCKET_READY){
+      cout << "Error start Server Socket" << endl;
+      return;
+   } 
 
    /////////////////////////////////////////////////
    

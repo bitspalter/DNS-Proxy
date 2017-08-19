@@ -25,11 +25,9 @@ C_Net_Udp_Socket::~C_Net_Udp_Socket(){
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::create(){
   
-   if(bSocket) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_EXIST);
+   if(bSocket) return(C_NET_UDP_SOCKET_ERROR);
 
-   hSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP); 
-
-   if(!hSocket) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_API);
+   if(!(hSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP))) return(C_NET_UDP_SOCKET_ERROR);
 
    bSocket = true;
 
@@ -40,7 +38,7 @@ int C_Net_Udp_Socket::create(){
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::close(){
   
-   if(!bSocket) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_EXIST);
+   if(!bSocket) return(C_NET_UDP_SOCKET_ERROR);
 
    stop();
    
@@ -63,11 +61,9 @@ int C_Net_Udp_Socket::connect(char* psIP, unsigned short Port){
   
    int address = 0;
 
-   if(!psIP) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_PTR);
+   if(!psIP) return(C_NET_UDP_SOCKET_ERROR);
 
-   address = inet_addr(psIP);
-
-   if(address == INADDR_NONE) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_INVALD);
+   if((address = inet_addr(psIP)) == INADDR_NONE) return(C_NET_UDP_SOCKET_ERROR);
 
    Address_Remote.sin_family = AF_INET;
    Address_Remote.sin_port   = htons(Port);
@@ -81,29 +77,21 @@ int C_Net_Udp_Socket::connect(char* psIP, unsigned short Port){
 //////////////////////////////////////////////////////////////////////////////////
 // [listen]  
 //////////////////////////////////////////////////////////////////////////////////
-int C_Net_Udp_Socket::listen(char* psIP, unsigned short Port){
-   int result  = 0;
+int C_Net_Udp_Socket::listen(const char* psIP, unsigned short Port){
+    
    int address = 0;
 
-   if(!bSocket) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_EXIST);
+   if(!bSocket || !psIP) return(C_NET_UDP_SOCKET_ERROR);
 
-   if(!psIP) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_PTR);
-
-   address = inet_addr(psIP);
-
-   if(address == INADDR_NONE) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_INVALD);
+   if((address = inet_addr(psIP)) == INADDR_NONE) return(C_NET_UDP_SOCKET_ERROR);
 
    inet_aton(psIP, &Address_Local.sin_addr);
 
    Address_Local.sin_family = AF_INET;
    Address_Local.sin_port   = htons(Port);
  
-   result = bind(hSocket, (sockaddr*) &Address_Local, sizeof(Address_Local));
-
-   if(result == -1){
-      cout << errno << endl;
-      return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_API);
-   }
+   if(bind(hSocket, (sockaddr*) &Address_Local, sizeof(Address_Local)) == -1)
+      return(C_NET_UDP_SOCKET_ERROR);
    
    bListen = true;
 
@@ -114,17 +102,10 @@ int C_Net_Udp_Socket::listen(char* psIP, unsigned short Port){
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::send(unsigned char* pData, unsigned long cData){
   
-   int result = 0;
+   if(!bSocket || !bConnect || !pData) return(C_NET_UDP_SOCKET_ERROR);
 
-   if(!bSocket) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_EXIST);
-
-   if(!bConnect) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_STATE);
-
-   if(!pData) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_PTR); 
-
-   result = sendto(hSocket, pData, cData, 0, (sockaddr*) &Address_Remote, sizeof(Address_Remote));
-
-   if(!result) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_API);
+   if(!sendto(hSocket, pData, cData, 0, (sockaddr*) &Address_Remote, sizeof(Address_Remote))) 
+      return(C_NET_UDP_SOCKET_ERROR);
 
    return(C_NET_UDP_SOCKET_READY);
 }
@@ -132,24 +113,17 @@ int C_Net_Udp_Socket::send(unsigned char* pData, unsigned long cData){
 // [recive]  
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::recive(unsigned char* pData, unsigned int* pcData, sockaddr_in* pAddress_Source){
-  
-   int result = 0;
+
    int cAddress_Source = sizeof(sockaddr_in);
 
-   if(!bSocket) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_EXIST);
-
-   if(!bListen) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_STATE);
-
-   if(!pData || !pcData) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_PTR); 
+   if(!bSocket || !bListen || !pData || !pcData) return(C_NET_UDP_SOCKET_ERROR);
 
    if(pAddress_Source)
-      result = recvfrom(hSocket, pData, *pcData, 0, (sockaddr*) pAddress_Source, (socklen_t*)&cAddress_Source);
+      *pcData = recvfrom(hSocket, pData, *pcData, 0, (sockaddr*) pAddress_Source, (socklen_t*)&cAddress_Source);
    else
-      result = recvfrom(hSocket, pData, *pcData, 0, 0, 0);
+      *pcData = recvfrom(hSocket, pData, *pcData, 0, 0, 0);
 
-   if(!result) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_API);
-
-   *pcData = result;
+   if(!*pcData) return(C_NET_UDP_SOCKET_ERROR);
 
    return(C_NET_UDP_SOCKET_READY);
 }
@@ -158,7 +132,7 @@ int C_Net_Udp_Socket::recive(unsigned char* pData, unsigned int* pcData, sockadd
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::getAddressLocal(sockaddr_in* pAddress_Local){
   
-   if(!pAddress_Local) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_PTR);
+   if(!pAddress_Local) return(C_NET_UDP_SOCKET_ERROR);
 
    *pAddress_Local = Address_Local;
 
@@ -169,7 +143,7 @@ int C_Net_Udp_Socket::getAddressLocal(sockaddr_in* pAddress_Local){
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::getAddressRemote(sockaddr_in* pAddress_Remote){
   
-   if(!pAddress_Remote) return(C_NET_UDP_SOCKET_ERROR | C_NET_UDP_SOCKET_SUB_PTR);
+   if(!pAddress_Remote) return(C_NET_UDP_SOCKET_ERROR);
 
    *pAddress_Remote = Address_Remote;
 
@@ -178,12 +152,14 @@ int C_Net_Udp_Socket::getAddressRemote(sockaddr_in* pAddress_Remote){
 //////////////////////////////////////////////////////////////////////////////////
 // [start]  
 //////////////////////////////////////////////////////////////////////////////////
-int C_Net_Udp_Socket::start(int idEx, C_Array* pCArrayEx){
+int C_Net_Udp_Socket::start(int idEx, unsigned char* pBuf, unsigned int cBuf){
   
-   if(bRun || !bSocket || !pCArrayEx) return(C_NET_UDP_SOCKET_ERROR);
+   if(bRun || !bSocket || !pBuf || !cBuf) return(C_NET_UDP_SOCKET_ERROR);
    
    ////////////
-   pCAData = pCArrayEx;
+   //pCAData = pCArrayEx;
+   pBuffer = pBuf;
+   cBuffer = cBuf;
    id      = idEx;
    ////////////
    
@@ -214,7 +190,7 @@ void C_Net_Udp_Socket::recive(){
    int cData = 0;
 
    while(bRun){
-      cData = recvfrom(hSocket, pCAData->getpBuffer(), pCAData->getcBuffer(), 0, (struct sockaddr*)&Address_Remote, (socklen_t*) &sa_len);
+      cData = recvfrom(hSocket, pBuffer, cBuffer, 0, (struct sockaddr*)&Address_Remote, (socklen_t*) &sa_len);
       if(cData > 0) m_signal_data.emit(id, cData);
    }
 }

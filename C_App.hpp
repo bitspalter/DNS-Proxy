@@ -2,16 +2,15 @@
 // [ APP_Class_Header ]
 //////////////////////////////////////////////////////////////////////////////////
 //
-// APP
+// DNS-PROXY ver:0.6
 //
-// [::Last modi: 24.03.17 L.ey (µ~)::]
+// [::Last modi: 19.08.17 L.ey (µ~)::]
 //
 //
 #ifndef _C_APP_H_
  #define _C_APP_H_
 
  #include <iostream>
- 
  using namespace std;
  
  #include <gtkmm/window.h>
@@ -27,8 +26,7 @@
  #include "C_Net.hpp"
  #include "C_Result.hpp"
  
- #include "C_Blacklist.hpp"
- #include "C_Whitelist.hpp"
+ #include "C_Filterlist.hpp"
  
 //////////////////////////////////////////////////////////////////////////////////
 // CONSTANT
@@ -37,6 +35,9 @@
  const int C_APP_ERROR = 0x00;
  const int C_APP_READY = 0x01;
    
+ const char WLPATH[] = "whitelist.txt";
+ const char BLPATH[] = "blacklist.txt";
+ 
 //////////////////////////////////////////////////////////////////////////////////
 // STRUCT
 //////////////////////////////////////////////////////////////////////////////////
@@ -52,15 +53,17 @@
 //////////////////////////////////////////////////////////////////////////////////
 // CLASS
 //////////////////////////////////////////////////////////////////////////////////
- class C_App : public Gtk::Window{
+ 
+ class C_App : public Gtk::Window {
   
     public:
+        
        C_App(int argc, char *argv[]);
        virtual ~C_App();
 
     protected:
      
-       C_TreeView m_TreeView;
+       C_TreeView CTreeView;
       
        //Child widgets:
        Gtk::ComboBoxText m_IFCombo;
@@ -89,8 +92,12 @@
       
        ////////////////////////
       
-       C_Blacklist CBlacklist;
-       C_Whitelist CWhitelist;
+       C_Filterlist CBlacklist;
+       C_Filterlist CWhitelist;
+       
+       ////////////////////////
+       
+       void help();
  };
 
 #endif // _C_APP_H_

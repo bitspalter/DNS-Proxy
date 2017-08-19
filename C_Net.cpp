@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 // [ start ]
 //////////////////////////////////////////////////////////////////////////////////
-int C_Net::start(C_DArray* pCDA_WList, C_DArray* pCDA_BList){
+int C_Net::start(C_DArray<char>* pCDA_WList, C_DArray<char>* pCDA_BList){
   
    if(!pCDA_WList || !pCDA_BList) return(C_NET_ERROR);
    
@@ -18,20 +18,15 @@ int C_Net::start(C_DArray* pCDA_WList, C_DArray* pCDA_BList){
       return(C_NET_ERROR);
    }
 
-   CAClient.create(1, 5000);
-   CAServer.create(1, 5000);
-   
    return(C_NET_READY);
 }
 //////////////////////////////////////////////////////////////////////////////////
 // [ on_udp_data ]
 //////////////////////////////////////////////////////////////////////////////////
 void C_Net::on_udp_data(int id, int cData){
-   if(id == C_NET_ID_CLIENT)
-      on_client_data((UCHAR*)CAClient.getpBuffer(), (DWORD)cData);
+   if(id == C_NET_ID_CLIENT) on_client_data(&CAClient[0], (DWORD)cData);
    else
-   if(id == C_NET_ID_SERVER)
-      on_server_data((UCHAR*)CAServer.getpBuffer(), (DWORD)cData);
+   if(id == C_NET_ID_SERVER) on_server_data(&CAServer[0], (DWORD)cData);
 }
 //////////////////////////////////////////////////////////////////////////////////
 // [ on_client_data ]
@@ -47,10 +42,10 @@ void C_Net::on_client_data(UCHAR* pBuffer, DWORD cBuffer){
       // CHECK ALL REQUESTS
       for(DWORD n = 0; n < cda_request.getnItems(); n++){
          // GET REQUEST
-         C_Array* pRequest = cda_request.getpItempData(n);
+         C_Array<Dns_Request>* pRequest = cda_request.getpItempData(n);
          if(!pRequest) return;
          // GET DATA
-         Dns_Request* pDns = (Dns_Request*)pRequest->getpBuffer();
+         Dns_Request* pDns = pRequest->getpBuffer();
          if(!pDns) return;
          // CHECK DNS ID
          if(pDns->ID == ((DNS_HEADER*)pBuffer)->DNS_ID){
@@ -145,7 +140,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
 
          if(this->NetModus == C_NET_MODUS_WHITELIST){
             for(DWORD nWL = 0; nWL < pCDA_WhiteList->getnItems(); nWL++){
-               if(C_Array* pData = pCDA_WhiteList->getpItempData(nWL)){
+               if(C_Array<char>* pData = pCDA_WhiteList->getpItempData(nWL)){
                   if(char* pTB = pData->getpBuffer()){
                      if(!strcmp(pTB, pTLD)){
                         bLegal = true;
@@ -158,7 +153,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
          if(this->NetModus == C_NET_MODUS_BLACKLIST){
             bLegal = true;
             for(DWORD nBL = 0; nBL < pCDA_BlackList->getnItems(); nBL++){
-               if(C_Array* pData = pCDA_BlackList->getpItempData(nBL)){
+               if(C_Array<char>* pData = pCDA_BlackList->getpItempData(nBL)){
                   if(char* pTB = pData->getpBuffer()){
                      if(!strcmp(pTB, pTLD)){
                         bLegal = false;
@@ -187,7 +182,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
 	    
             //////////////////////////////////////////////////    
             // SET MAC:IP:PORT FOR UDP SOCKET
-	    CNUdpServer.connect(inet_ntoa(sock.sin_addr), ntohs(sock.sin_port));
+            CNUdpServer.connect(inet_ntoa(sock.sin_addr), ntohs(sock.sin_port));
             // SEND DATA UDP SOCKET
             CNUdpServer.send(pBuffer, cBuffer);
 
@@ -204,7 +199,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
             dns_result.pName      = 0;
             dns_result.bBlock     = true;
 
-	    sig_dns_data();
+            sig_dns_data();
 	    
             return; // FERTIG
          }
@@ -213,7 +208,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
       ///////////////////////////////////////////////////////////////////////////
       // Packet hat Black | White List bestanden
       // Speicher Request, Sende Request an Original DNS Server
-      C_Array* pRequest = cda_request.addItem(1, sizeof(Dns_Request));
+      C_Array<Dns_Request>* pRequest = cda_request.addItem(1);
       if(!pRequest) return;
       //////////////////////////////////////////////////
       Dns_Request dnsRequest;
@@ -291,15 +286,15 @@ void C_Net::get_request(DWORD pIP, UCHAR* pDNS_Packet, DWORD cDNS_Packet){
             dns_result.pName      = 0;
             dns_result.bBlock     = false;
 
-	    sig_dns_data();
+            sig_dns_data();
 	    
             pData += 4;
          }else
          // DATA = ADDRESS LIKE www3.L.[0xC0][POINTER ON STRING]
          if(pAnswer->DNS_Type == DNS_QUEST_TYP_CNAME){
-	   
-	    memset(psDomain, 0, sizeof(psDomain));
-	    
+
+            memset(psDomain, 0, sizeof(psDomain));
+
             csDomain = 0;
             csName = 0;
 

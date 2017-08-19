@@ -5,7 +5,7 @@
 //
 // [STATIC ARRAY CLASS]
 //
-// Last modi: 24.03.17 L.ey (µ~)
+// Last modi: 18.08.17 L.ey (µ~)
 //
 #ifndef _C_ARRAY_H_
  #define _C_ARRAY_H_
@@ -19,53 +19,189 @@
 
  const int C_ARRAY_READY = 0x01;
  const int C_ARRAY_ERROR = 0x00;
- 
- const int C_ARRAY_SUB_PTR   = 0x0100;
- const int C_ARRAY_SUB_EXIST = 0x0200;
- const int C_ARRAY_SUB_OVER  = 0x0300;
 
 //////////////////////////////////////////////////////////////////////////////////
-
+ 
+ template <typename T>
  class C_Array {
    
     public:
+       /////////////////////////////////////////////////////////////////
+       // [ Constructor ]  
+       /////////////////////////////////////////////////////////////////
+       C_Array(){
+          status  = C_ARRAY_ERROR;
+          cItem   = 0;
+          nItem   = 0;
+          cBuffer = 0;
+          pBuffer = 0;
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ Constructor ]  
+       /////////////////////////////////////////////////////////////////
+       C_Array(int nItem){
+          status = C_ARRAY_ERROR;
+          create(nItem);
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ Copy Constructor ]  
+       /////////////////////////////////////////////////////////////////
+       C_Array(const C_Array& rCArray){
+          status  = C_ARRAY_ERROR;
+          cItem   = rCArray.getcItem();
+          nItem   = rCArray.getnItem();
+          cBuffer = cItem * nItem;
 
-       C_Array();
-       C_Array(int nItem, int cItem);
-       C_Array(const C_Array&);
-      ~C_Array(); 
-       C_Array& operator=(const C_Array&);
- 
-       int create(int nItem, int cItem);
-       int destroy();
- 
-       // (!) offset[0] = Item nr.1
-       //
-       int getItem(int offset, void* pDataDst); 
-       int setItem(int offset, void* pDataSrc);
+          if(cBuffer){
+             pBuffer = new T[nItem];
+             status  = C_ARRAY_READY;
+             T* pTempBuffer = rCArray.getpBuffer();
+             if(pBuffer && pTempBuffer) 
+                memcpy(pBuffer, pTempBuffer, cBuffer);
+          }
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ Destructor ]  
+       /////////////////////////////////////////////////////////////////
+       ~C_Array(){
+          destroy();
+       }; 
+       /////////////////////////////////////////////////////////////////
+       // [ operator = ]  
+       /////////////////////////////////////////////////////////////////
+       C_Array& operator=(const C_Array& rCArray){
 
-       char* getpItem(int offset);
+          if(this == &rCArray) return(*this);
+
+          if(status != C_ARRAY_ERROR) destroy(); 
+
+          status  = C_ARRAY_ERROR;
+          cItem   = rCArray.getcItem();
+          nItem   = rCArray.getnItem();
+          cBuffer = cItem * nItem;
+
+          if(cBuffer){
+             pBuffer = new T[nItem];
+             status  = C_ARRAY_READY;
+             
+             T* pTempBuffer = rCArray.getpBuffer();
+             
+             if(pBuffer && pTempBuffer) 
+                memcpy(pBuffer, pTempBuffer, cBuffer);
+          }
+
+          return(*this);
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ create ]  
+       /////////////////////////////////////////////////////////////////
+       int create(int _nItem){
+  
+          if(status == C_ARRAY_READY) return(C_ARRAY_ERROR);
+
+          ////////////////////////////////
+          pBuffer = new T[_nItem];
+          ////////////////////////////////
+
+          if(!pBuffer) return(C_ARRAY_ERROR);
+      
+          status  = C_ARRAY_READY;
+          nItem   = _nItem;
+          cItem   = sizeof(T);
+          cBuffer = _nItem * cItem;
+
+          memset(pBuffer, 0, cBuffer);
+
+          return(C_ARRAY_READY);
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ destroy ]  
+       /////////////////////////////////////////////////////////////////
+       int destroy(){
+  
+          if(status == C_ARRAY_ERROR) return(C_ARRAY_ERROR); 
+  
+          //////////////////////////
+          delete [] pBuffer;
+          //////////////////////////
+
+          status  = C_ARRAY_ERROR;
+
+          nItem   = 0;
+          cItem   = 0;
+          cBuffer = 0;
+          pBuffer = 0;
+          
+          return(C_ARRAY_READY);
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ getItem ]  
+       /////////////////////////////////////////////////////////////////
+       int getItem(int offset, T* pDataDst){
+
+          if(status == C_ARRAY_ERROR) return(C_ARRAY_ERROR); 
+
+          if(!pDataDst) return(C_ARRAY_ERROR);
+
+          if(offset > nItem) return(C_ARRAY_ERROR);
+	 
+          T* pDataSrc = pBuffer;
+          pDataSrc += offset;
+
+          ////////////////////////////////////
+          memcpy(pDataDst, pDataSrc, cItem);
+          ////////////////////////////////////
+
+          return(C_ARRAY_READY);
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ setItem ]  
+       /////////////////////////////////////////////////////////////////
+       int setItem(int offset, T* pDataSrc){
+
+          if(!pDataSrc) return(C_ARRAY_ERROR); 
+
+          if(offset > nItem) return(C_ARRAY_ERROR); 
+	 
+          T* pDataDst = pBuffer;
+          pDataDst += offset;
+
+          ////////////////////////////////////
+          memcpy(pDataDst, pDataSrc, cItem);
+          ////////////////////////////////////
+
+          return(C_ARRAY_READY);
+       }
+       /////////////////////////////////////////////////////////////////
+       // [ getpItem ]  
+       /////////////////////////////////////////////////////////////////
+       T* getpItem(int offset){
+  
+          if(status == C_ARRAY_ERROR) return((T*)(C_ARRAY_ERROR)); 
+
+          return(pBuffer + offset);
+       }
 
        //////////////////////////////////
        // Inline
        //
-       int   getStatus()  const {return(status);}
+       int getStatus()  const {return(status);}
 
-       char* getpBuffer() const {return(pBuffer);}
-       int   getcBuffer() const {return(cBuffer);}
+       T*  getpBuffer() const {return(pBuffer);}
+       int getcBuffer() const {return(cBuffer);}
 
-       int   getnItem()   const {return(nItem);}
-       int   getcItem()   const {return(cItem);}
+       int getnItem()   const {return(nItem);}
+       int getcItem()   const {return(cItem);}
    
     private:
 
-       int   status;
+       int status;
        
-       int   cBuffer;    // FullSize
-       int   nItem;      // Item count
-       int   cItem;      // Item size 
+       int cBuffer; // FullSize
+       int nItem;   // Item count
+       int cItem;   // Item size 
        
-       char* pBuffer;    // DeltaPointer
+       T*  pBuffer; // DeltaPointer
  };
 
 #endif // _C_ARRAY_H_
