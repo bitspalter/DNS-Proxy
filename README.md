@@ -14,10 +14,9 @@ Options:
   -i interface
   -b blacklist (path)
   -w whitelist (path)
-  
+
 Example: ./dns-proxy -i eth0 -d 192.168.0.1 -l black -b /home/foo/blacklist.txt -a
     
-
 Browser <---> DNS-Proxy(whitelist | Blacklist) <---> DNS-Server
 
 ![alt tag](https://github.com/bitspalter/DNS-Proxy/blob/master/DNS-Proxy.png "DNS-Proxy")
