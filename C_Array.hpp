@@ -53,7 +53,14 @@
           cBuffer = cItem * nItem;
 
           if(cBuffer){
-             pBuffer = new T[nItem];
+             try {
+                pBuffer = new T[nItem];
+             }catch(exception& e){
+                cItem   = 0;
+                nItem   = 0;
+                cBuffer = 0;
+                return;
+             }
              status  = C_ARRAY_READY;
              T* pTempBuffer = rCArray.getpBuffer();
              if(pBuffer && pTempBuffer) 
@@ -81,7 +88,15 @@
           cBuffer = cItem * nItem;
 
           if(cBuffer){
-             pBuffer = new T[nItem];
+             try {
+                pBuffer = new T[nItem];
+             }catch(exception& e){
+                cItem   = 0;
+                nItem   = 0;
+                cBuffer = 0;
+                return(nullptr); 
+             }
+             
              status  = C_ARRAY_READY;
              
              T* pTempBuffer = rCArray.getpBuffer();
@@ -100,11 +115,13 @@
           if(status == C_ARRAY_READY) return(C_ARRAY_ERROR);
 
           ////////////////////////////////
-          pBuffer = new T[_nItem];
+          try {
+             pBuffer = new T[_nItem];
+          }catch(exception& e){
+             return(C_ARRAY_ERROR); 
+          }
           ////////////////////////////////
 
-          if(!pBuffer) return(C_ARRAY_ERROR);
-      
           status  = C_ARRAY_READY;
           nItem   = _nItem;
           cItem   = sizeof(T);

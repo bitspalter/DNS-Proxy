@@ -36,8 +36,14 @@
        // [ Constructor ]  
        /////////////////////////////////////////////////////////////////
        C_DArray(){
-          this->pHead  = new S_C_DArray<T>;
-          this->pTail  = new S_C_DArray<T>;
+          this->status = C_DARRAY_ERROR;
+          try {
+             this->pHead  = new S_C_DArray<T>;
+             this->pTail  = new S_C_DArray<T>;
+          }catch(exception& e){
+             return;
+          }
+          this->status = C_DARRAY_READY;
           this->nItems = 0;
        }
        /////////////////////////////////////////////////////////////////
@@ -47,16 +53,27 @@
           S_C_DArray<T>* pNewItem  = 0;
           S_C_DArray<T>* prCDArray = 0;
 
-          this->pHead  = new S_C_DArray<T>;
-          this->pTail  = new S_C_DArray<T>;
+          this->status = C_DARRAY_ERROR;
+          
+          try {
+             this->pHead  = new S_C_DArray<T>;
+             this->pTail  = new S_C_DArray<T>;
+          }catch(exception& e){
+             return;   
+          }
+          
           this->nItems = 0;
 
           for(int rnItems = 0; rnItems < rCDArray.getnItems(); rnItems++){
              if(!this->nItems){ // First Item
                  
-                if(!(pNewItem        = new S_C_DArray<T>)) break;
-                if(!(pNewItem->pData = new C_Array<T>))    break;
-
+                try {
+                   pNewItem        = new S_C_DArray<T>;
+                   pNewItem->pData = new C_Array<T>;
+                }catch(exception& e){
+                   return;   
+                }
+                
                 ///////////////////////////////////////////
 
                 if(!(prCDArray = rCDArray.getpItem(rnItems))) break;
@@ -73,8 +90,12 @@
                 
              }else{ // Next Item 
 	
-                if(!(pNewItem        = new S_C_DArray<T>)) break;
-                if(!(pNewItem->pData = new C_Array<T>))    break;
+                try {
+                   pNewItem        = new S_C_DArray<T>;
+                   pNewItem->pData = new C_Array<T>;
+                }catch(exception& e){
+                   return;   
+                }
 
                 ///////////////////////////////////////////
 
@@ -93,6 +114,8 @@
 	
              this->nItems++;
           }
+          
+          this->status = C_DARRAY_READY;
        }
        /////////////////////////////////////////////////////////////////
        // [ Destructor ]  
@@ -107,7 +130,7 @@
        /////////////////////////////////////////////////////////////////
        C_DArray& operator=(const C_DArray& rCDArray){
           if(this == &rCDArray) return(*this);
-
+          
           S_C_DArray<T>* pNewItem  = 0;
           S_C_DArray<T>* prCDArray = 0;
 
@@ -116,8 +139,12 @@
           for(int rnItems = 0; rnItems < rCDArray.getnItems(); rnItems++){
              if(!this->nItems){ // First Item
 	  
-                if(!(pNewItem        = new S_C_DArray<T>)) break;
-                if(!(pNewItem->pData = new C_Array<T>))    break;
+                try {
+                   pNewItem        = new S_C_DArray<T>;
+                   pNewItem->pData = new C_Array<T>;
+                }catch(exception& e){
+                   return(nullptr);   
+                }
 
                 ///////////////////////////////////////////
 
@@ -135,8 +162,12 @@
                 
              }else{ // Next Item 
 
-                if(!(pNewItem        = new S_C_DArray<T>)) break;
-                if(!(pNewItem->pData = new C_Array<T>))    break;
+                try {
+                   pNewItem        = new S_C_DArray<T>;
+                   pNewItem->pData = new C_Array<T>;
+                }catch(exception& e){
+                   return(nullptr);   
+                }
 
                 ///////////////////////////////////////////
 
@@ -167,11 +198,12 @@
 
           if(!this->nItems){ // First Item
    
-             if(!(pNewItem = new S_C_DArray<T>)) 
-                return(nullptr);
-
-             if(!(pNewItem->pData = new C_Array<T>)) 
-                return(nullptr);
+             try {
+                pNewItem        = new S_C_DArray<T>;
+                pNewItem->pData = new C_Array<T>;
+             }catch(exception& e){
+                return(nullptr);   
+             }
 
              pNewItem->pNext = this->pTail;
              pNewItem->pPrev = this->pHead;
@@ -181,11 +213,12 @@
              
           }else{ // Next Item 
    
-             if(!(pNewItem = new S_C_DArray<T>)) 
-                return(nullptr);
-
-             if(!(pNewItem->pData = new C_Array<T>)) 
-                return(nullptr);
+             try {
+                pNewItem        = new S_C_DArray<T>;
+                pNewItem->pData = new C_Array<T>;
+             }catch(exception& e){
+                return(nullptr);   
+             }
 
              pNewItem->pNext = this->pTail;
              pNewItem->pPrev = this->pTail->pPrev;
@@ -206,11 +239,12 @@
 
           if(!this->nItems){ // First Item
 
-             if(!(pNewItem = new S_C_DArray<T>)) 
-                return(nullptr);
-             
-             if(!(pNewItem->pData = new C_Array<T>)) 
-                return(nullptr);
+             try {
+                pNewItem        = new S_C_DArray<T>;
+                pNewItem->pData = new C_Array<T>;
+             }catch(exception& e){
+                return(nullptr);   
+             }
 
              ////////////////////////////////////////////////////////////
 
@@ -227,11 +261,12 @@
              
           }else{ // Next Item 
 
-             if(!(pNewItem = new S_C_DArray<T>)) 
-                return(nullptr);
-
-             if(!(pNewItem->pData = new C_Array<T>)) 
-                return(nullptr);
+             try {
+                pNewItem        = new S_C_DArray<T>;
+                pNewItem->pData = new C_Array<T>;
+             }catch(exception& e){
+                return(nullptr);   
+             }
 
              ////////////////////////////////////////////////////////////
 
@@ -372,7 +407,8 @@
     private:
      
        int nItems;
-
+       int status;
+       
        S_C_DArray<T>* pHead;
        S_C_DArray<T>* pTail;
  };
