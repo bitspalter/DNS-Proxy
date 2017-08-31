@@ -5,6 +5,14 @@
 #include "C_Edit_IP.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////
+// [ Konstructor ]  
+//////////////////////////////////////////////////////////////////////////////////
+C_Edit_IP::C_Edit_IP(){
+   for(int n = 0; n < 4; n++){
+      aEdit[n].set_max_length(3);
+   }   
+}
+//////////////////////////////////////////////////////////////////////////////////
 // [set_size]
 //////////////////////////////////////////////////////////////////////////////////
 void C_Edit_IP::setSize(int x, int y){
@@ -73,7 +81,7 @@ int C_Edit_IP::setIP(const char* psData){
 
    while(1){
       found1 = strIP.find(".", found2);
-      if(found1 != -1){
+      if(found1 != string::npos){
          t[nt++] = strIP.substr(found2, found1 - found2);
       }else{
          t[nt] = strIP.substr(found2, strIP.size() - found2);
