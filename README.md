@@ -1,7 +1,7 @@
 # DNS-Proxy (alpha)
 
 1. compile:
-g++ *.cpp -std=c++11 -o DNS-Proxy `pkg-config gtkmm-3.0 --cflags --libs`
+g++ *.cpp -std=c++11 -o DNS-Proxy -no-pie -Wall \`pkg-config gtkmm-3.0 --cflags --libs\`
 
 2. set right to open udp port 53 as non root:
 setcap 'cap_net_bind_service=+ep' ./DNS-Proxy
