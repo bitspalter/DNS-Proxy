@@ -8,7 +8,9 @@ setcap 'cap_net_bind_service=+ep' ./DNS-Proxy
 
 Options:
 -h help
+
 -d dns server
+
 -a autostart
 -l list (white|black)
 -i interface
