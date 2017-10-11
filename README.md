@@ -7,13 +7,13 @@ g++ *.cpp -std=c++11 -o DNS-Proxy -no-pie -Wall \`pkg-config gtkmm-3.0 --cflags 
 setcap 'cap_net_bind_service=+ep' ./DNS-Proxy
 
 Options:<br />
--h help<br />
--d dns server<br />
--a autostart<br />
--l list (white|black)<br />
--i interface<br />
--b blacklist (path)<br />
--w whitelist (path)<br />
+-(h)elp<br />
+-(d)ns server<br />
+-(a)utostart<br />
+-(l)ist (white|black)<br />
+-(i)nterface<br />
+-(b)lacklist (path)<br />
+-(w)hitelist (path)<br />
 
 Example: ./dns-proxy -i eth0 -d 192.168.0.1 -l black -b /home/foo/blacklist.txt -a
     
