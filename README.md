@@ -7,7 +7,7 @@ g++ *.cpp -std=c++11 -o DNS-Proxy -no-pie -Wall \`pkg-config gtkmm-3.0 --cflags 
 setcap 'cap_net_bind_service=+ep' ./DNS-Proxy
 
 Options:
-  -h help
+  -h help \n
   -d dns server
   -a autostart
   -l list (white|black)
