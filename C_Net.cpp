@@ -86,8 +86,6 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
       if(this->NetModus == C_NET_MODUS_WHITELIST || this->NetModus == C_NET_MODUS_BLACKLIST){
          DWORD off = sizeof(DNS_HEADER);
          DWORD offDomain = 0;
-         //UCHAR cDNS_Name = pBuffer[off];
-
          UCHAR pDomain[1024];
 
          ///////////////////////////////////////////////////////////////////////
@@ -108,7 +106,9 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
             off += pBuffer[off] + 1;
          }
 
-         pDomain[offDomain] = 0;
+         if(!offDomain) return;
+         
+         pDomain[offDomain - 1] = 0;
 
          ///////////////////////////////////////////////////////////////////
          // Mach aus aaa.bbbb.cc.de
