@@ -58,7 +58,7 @@
      int create();
      int get_First_Active();
 
-     const S_Net_Interface* get_pInterface(int nInterface);
+     const S_Net_Interface* get_pInterface(unsigned int nInterface);
      
      // Inline
      //

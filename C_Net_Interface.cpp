@@ -155,7 +155,7 @@ int C_Net_Interface::get_First_Active(){
 //////////////////////////////////////////////////////////////////////////////////
 // [get_pInterface]
 //////////////////////////////////////////////////////////////////////////////////
-const S_Net_Interface* C_Net_Interface::get_pInterface(int nInterface){
+const S_Net_Interface* C_Net_Interface::get_pInterface(unsigned int nInterface){
    if(vInterface.size() < nInterface) return(nullptr);
    return(&vInterface[nInterface]); 
 }

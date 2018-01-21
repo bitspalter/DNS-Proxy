@@ -57,7 +57,7 @@
        C_Result(){};
       ~C_Result(){};
      
-       int init(C_TreeView* pTV, Glib::RefPtr<Gtk::ListStore> pLS, Gtk::TreeModel::ColumnRecord* pCR, S_Result* pDnsData){
+       void init(C_TreeView* pTV, Glib::RefPtr<Gtk::ListStore> pLS, Gtk::TreeModel::ColumnRecord* pCR, S_Result* pDnsData){
           pTreeView     = pTV; 
           pListStore    = pLS; 
           pColumnRecord = pCR; 

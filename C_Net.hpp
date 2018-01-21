@@ -4,7 +4,7 @@
 //
 // Net
 //
-// [::Last modi: 19.08.17 L.ey (µ~)::]
+// [::Last modi: 21.01.18 L.ey (µ~)::]
 //
 //
 #ifndef _C_NET_H_

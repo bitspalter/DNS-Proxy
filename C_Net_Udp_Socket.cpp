@@ -59,7 +59,7 @@ int C_Net_Udp_Socket::close(){
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::connect(char* psIP, unsigned short Port){
   
-   int address = 0;
+   unsigned int address = 0;
 
    if(!psIP) return(C_NET_UDP_SOCKET_ERROR);
 
@@ -79,7 +79,7 @@ int C_Net_Udp_Socket::connect(char* psIP, unsigned short Port){
 //////////////////////////////////////////////////////////////////////////////////
 int C_Net_Udp_Socket::listen(const char* psIP, unsigned short Port){
     
-   int address = 0;
+   unsigned int address = 0;
 
    if(!bSocket || !psIP) return(C_NET_UDP_SOCKET_ERROR);
 

@@ -40,7 +40,7 @@ void C_Net::on_client_data(UCHAR* pBuffer, DWORD cBuffer){
 
    if(_DNS_Flag & DNS_FLAG_TYP_RESPONSE){
       // CHECK ALL REQUESTS
-      for(DWORD n = 0; n < cda_request.getnItems(); n++){
+      for(int n = 0; n < cda_request.getnItems(); n++){
          // GET REQUEST
          C_Array<Dns_Request>* pRequest = cda_request.getpItempData(n);
          if(!pRequest) return;
@@ -86,28 +86,29 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
       if(this->NetModus == C_NET_MODUS_WHITELIST || this->NetModus == C_NET_MODUS_BLACKLIST){
          DWORD off = sizeof(DNS_HEADER);
          DWORD offDomain = 0;
-         UCHAR cDNS_Name = pBuffer[off];
+         //UCHAR cDNS_Name = pBuffer[off];
 
          UCHAR pDomain[1024];
 
          ///////////////////////////////////////////////////////////////////////
          // Mach Aus pBuffer[] = "[3][G][M][X][2][D][E]"
          // pDomain[] = "[G][M][X][.][D][E][0]"
-
+         
          while(pBuffer[off]){
             memcpy(&pDomain[offDomain], &pBuffer[off + 1], pBuffer[off]);
             offDomain += pBuffer[off];
+            
+            if(offDomain > 1023){
+               offDomain = 1023;
+               break;
+            }
+            
             pDomain[offDomain] = 46;
             offDomain++;
             off += pBuffer[off] + 1;
-
-            if(offDomain > 1024){
-               offDomain = 1024;
-               break;
-            }
          }
 
-         pDomain[offDomain - 1] = 0;
+         pDomain[offDomain] = 0;
 
          ///////////////////////////////////////////////////////////////////
          // Mach aus aaa.bbbb.cc.de
@@ -139,7 +140,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
          bool bLegal = false;
 
          if(this->NetModus == C_NET_MODUS_WHITELIST){
-            for(DWORD nWL = 0; nWL < pCDA_WhiteList->getnItems(); nWL++){
+            for(int nWL = 0; nWL < pCDA_WhiteList->getnItems(); nWL++){
                if(C_Array<char>* pData = pCDA_WhiteList->getpItempData(nWL)){
                   if(char* pTB = pData->getpBuffer()){
                      if(!strcmp(pTB, pTLD)){
@@ -152,7 +153,7 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
          }else
          if(this->NetModus == C_NET_MODUS_BLACKLIST){
             bLegal = true;
-            for(DWORD nBL = 0; nBL < pCDA_BlackList->getnItems(); nBL++){
+            for(int nBL = 0; nBL < pCDA_BlackList->getnItems(); nBL++){
                if(C_Array<char>* pData = pCDA_BlackList->getpItempData(nBL)){
                   if(char* pTB = pData->getpBuffer()){
                      if(!strcmp(pTB, pTLD)){
@@ -172,13 +173,6 @@ void C_Net::on_server_data(UCHAR* pBuffer, DWORD cBuffer){
             // Packet hat Black | White List nicht bestanden
             // Sende [Not Exist Error]-->Client
             ((DNS_HEADER*)pBuffer)->DNS_Flags = 0x8381;
-
-            //////////////////////////////////////////////////
-            Dns_Request dnsRequest;
-            // REQUEST ID
-            dnsRequest.ID = ((DNS_HEADER*)pBuffer)->DNS_ID;
-            // REQUEST SIZE
-            dnsRequest.cData = cBuffer;
 	    
             //////////////////////////////////////////////////    
             // SET MAC:IP:PORT FOR UDP SOCKET

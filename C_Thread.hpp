@@ -37,7 +37,7 @@ class C_Thread {
          bRunning = true;
 
          C_Thread::pClass = pClass; 
-	 C_Thread::pFunc  = pFunc;
+	     C_Thread::pFunc  = pFunc;
 
          return(C_THREAD_READY);
       }
@@ -68,7 +68,8 @@ class C_Thread {
       // [ pThread ]
       ////////////////////////////////////////////////////////////////////
       static void* pThread(void* pSelf){
-         ((C_Thread*)pSelf)->Thread(); 
+         ((C_Thread*)pSelf)->Thread();
+         return(nullptr);
       }
       ////////////////////////////////////////////////////////////////////
       // [ _Thread ]
