@@ -50,7 +50,7 @@ int C_Filterlist::read(){
 int C_Filterlist::add(const char* pSite){
     
    if(!pSite) return(C_FLIST_ERROR);
-   
+
    int cSite = 0, cPoint = 0, pPoint[127];
 
    if(!(cSite = strlen(pSite))) return(C_FLIST_ERROR);
@@ -72,7 +72,7 @@ int C_Filterlist::add(const char* pSite){
    
    if(cPoint > 1) memcpy(dns, &pSite[pPoint[1]] + 1, cSite - pPoint[1] - 1);
    else
-   if(cPoint > 0) memcpy(dns, &pSite, cSite);
+   if(cPoint > 0) memcpy(dns, pSite, cSite);
 
    ////////////////////////////////////////////
    // Test ob schon vorhanden
